@@ -1,0 +1,143 @@
+# Rate limiting with Generic cell rate algorithm
+
+Louis Chan
+16 Jun 2023
+louischan@oursky.com
+
+## Why am I giving this presentation
+
+- A recent update on rate limiting in Authgear introduced GCRA.
+- What problems it solves, and what problems it doesn't solve.
+
+## What is rate limiting?
+
+From [https://en.wikipedia.org/wiki/Rate_limiting](https://en.wikipedia.org/wiki/Rate_limiting)
+
+> In computer networks, rate limiting is used to control the rate of requests sent or received by a network interface controller. It can be used to prevent DoS attacks[1] and limit web scraping.
+
+**Prevent resources from malicious or excessive use.**
+
+## Common resources
+
+- Computationally expensive API endpoints, e.g. **FormX**
+- Metered services, e.g. sending **SMS** or **emails**
+
+## How do we express rate limiting
+
+- In 2 numbers
+  - A quantity of any unit
+  - A duration
+
+Examples
+
+- _... can only send at most 10 SMS messages to a given phone number in 24 hours ..._
+- _... at most 5000 HTTP requests per hour ..._
+
+## Naive token bucket
+
+_The original implementation in Authgear_
+
+- **HINCRBY** KEY `"token_taken"` `1`
+- **HSETNX** KEY `"reset_time"` EXPIRE
+- **PEXPIREAT** KEY EXPIRE
+
+where
+
+**EXPIRE** is the current timestamp plus **DURATION**
+
+## Problems of Naive token bucket
+
+- The bucket only refills on expiration.
+
+## Generic cell rate algorithm
+
+- [https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm](https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm)
+- [https://github.com/iawaknahc/gcra](https://github.com/iawaknahc/gcra)
+- **leaky bucket** or **virtual scheduling**
+
+## GCRA: EmissionInterval
+
+- The amount of time 1 cell must wait in a equally spaced schedule
+- 3600 requests per hours => 1 request per second => 1 second
+
+<img src="./images/emission-interval.jpg" width="100%" style="position: relative; top: -150px; z-index: -1;">
+
+## GCRA: Tolerance
+
+- The capacity. It must be >= 1. Let assume it is 1 now.
+
+## GCRA: Theoretical Arrival Time (TAT)
+
+- The arrival time of the cell if the cell follows the equally spaced schedule.
+
+<img src="./images/tat.jpg" width="100%" style="position: relative; top: -100px; left: 100px; z-index: -1;">
+
+## GCRA: Actual Arrival Time (Ta)
+
+- **Ta** is now.
+
+## GCRA: Next Theoretical Arrival Time (TAT')
+
+Case 1: Ta > TAT
+
+- The cell comes **after** TAT.
+- Take Ta as TAT
+- TAT' = Ta + quantity * EmissionInterval
+
+<img src="./images/ta-greater-than-tat.jpg" width="100%" style="position: relative; top: -240px; left: 120px; z-index: -1;">
+
+## GCRA: Next Theoretical Arrival Time (TAT')
+
+Case 2: Ta <= TAT
+
+- The cell comes **before** TAT.
+- TAT' = TAT + quantity * EmissionInterval
+
+<img src="./images/ta-less-than-or-equal-to-tat.jpg" width="100%" style="position: relative; top: -190px; left: 120px; z-index: -1;">
+
+## GCRA: Delay Variation Tolerance (DVT)
+
+- DVT = EmissionInterval * Tolerance
+- How many cells are allowed before TAT.
+
+## GCRA: AllowAt
+
+- AllowAt = TAT' - DVT
+- A cell is conforming iff Ta >= AllowAt.
+- That is, the cell does not come too early.
+
+<img src="./images/allow-at.jpg" width="100%" style="position: relative; top: -150px; left: 120px; z-index: -1;">
+
+## GCRA: Tolerance > 1
+
+- EmissionInterval = 1s
+- Tolerance = 3
+
+<img src="./images/tolerance-greater-than-1.jpg" width="100%" style="position: relative; top: 20px; left: 120px; z-index: -1;">
+
+## Advantages of GCRA
+
+- Able to refill.
+- Simple to implement.
+- Fast to execute.
+- Just need to store a timestamp to maintain the state.
+
+## Mistakes we made in Authgear
+
+> _... The user MUST BE blocked from login attempts for 5 minutes if they have entered incorrect password 10 times ..._
+
+- 10 attempts per 5 minutes => 10 attempts per 300 seconds
+- Tolerance = 10
+- EmissionInterval = 300 seconds / 10 = 30s
+
+See the problem?
+
+## Another application of GCRA in Authgear: Resend cooldown
+
+> _... The user can only request the system to resend SMS after 120 seconds ..._
+
+- 1 attempts per 120 seconds
+- Tolerance = 1
+- EmissionInterval = 120s
+
+## Q & A

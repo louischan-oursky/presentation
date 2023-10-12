@@ -1,0 +1,133 @@
+# Make non-breaking changes
+
+Louis Chan
+13 Oct 2023
+louischan@oursky.com
+
+## Why am I giving this presentation
+
+- Let junior developers know how to make non-breaking changes to
+  - The codebase
+  - The public API (e.g. HTTP API)
+  - The database
+
+## Make changes to the codebase
+
+## Change the behavior of a function - 1
+
+: What does this mean?
+
+The call site can compile, but the behavior is changed!
+
+## Change the behavior of a function - 2
+
+: How do we make non-breaking changes to the codebase?
+
+- Rename the function.
+- Change the type of any argument.
+- Change the return type.
+
+## Change the behavior of a function - 3
+
+: Artificial example.
+: Ask which technique is used in this example.
+
+.code example1.ts
+
+## Change the behavior of a function - 4
+
+: Open the link and show people.
+: Ask which technique is used in this example.
+
+Real world example
+
+[https://github.com/authgear/authgear-server/pull/3196/commits/5e827a51af82de03499d3b0bfa1fb6d24c0a0d0a](https://github.com/authgear/authgear-server/pull/3196/commits/5e827a51af82de03499d3b0bfa1fb6d24c0a0d0a)
+
+## Make changes to the HTTP API
+
+## Introduce a v2 API - 1
+
+: Explain why both versions must be supported.
+
+- Make sure your server support **BOTH** v1 and v2!
+
+## Introduce a v2 API - 2
+
+: Ask how is this abstraction called in Oursky.
+
+- Introduce an abstraction for interacting with the API.
+- Outside this abstraction, the difference between v1 and v2 is normalized.
+
+## Introduce a v2 API - 3
+
+: Easy to roll back.
+
+- Make it easy to switch between v1 and v2 with configuration.
+  - Via envvar
+  - Via build-time configuration
+
+## Introduce a v2 API - 4
+
+- Make it easy to remove v1 code.
+  - v1 lives in `/v1`; v2 lives in `/v2`.
+  - Can delete `/v1` trivially.
+
+## Introduce a v2 API - 5
+
+: Ask what is the problem here.
+
+Counterexample
+
+[https://github.com/oursky/formx-validation-engine/pull/228/commits/b93197c7a1fa3527a62b81a5ab197cb99e2da736#diff-20bd4a18c3aaeb0cd66991da4d9e47ee7c84b5c0141ab5316d4b51aabe7af2b5R7](https://github.com/oursky/formx-validation-engine/pull/228/commits/b93197c7a1fa3527a62b81a5ab197cb99e2da736#diff-20bd4a18c3aaeb0cd66991da4d9e47ee7c84b5c0141ab5316d4b51aabe7af2b5R7)
+
+## Introduce a v2 API - 6
+
+A solution
+
+.code example2.py
+
+## Make changes to the database
+
+## No these changes!
+
+: Explain why.
+
+- Rename a table.
+- Rename a column.
+- Add a non-nullable column WITHOUT default value.
+
+## Safe changes to make
+
+: Explain why.
+
+- Add a nullable column.
+- Add a new table.
+
+## Apply the database changes BEFORE upgrading the server
+
+: Explain why.
+
+- Apply the database changes BEFORE upgrading the server
+- Apply the database changes BEFORE upgrading the server
+
+## Never run downgrade migration
+
+- `DROP COLUMN .....`
+- `DROP TABLE ......`
+
+## Data patch and migration are different!
+
+- Data patch
+  - Can run more than once.
+  - Should be idempotent.
+- Migration
+  - Can only run at most once.
+
+## Before running data patch
+
+- Test it extensively.
+- Back up the data before running.
+
+## Notion page
+
+[https://www.notion.so/oursky/Make-non-breaking-changes-e4b5718a0472480fa680adfb2543761d](https://www.notion.so/oursky/Make-non-breaking-changes-e4b5718a0472480fa680adfb2543761d)
