@@ -1,0 +1,202 @@
+# An application of tree
+
+Louis Chan
+17 Nov 2023
+louischan@oursky.com
+
+## What is a tree
+
+- A tree consists of nodes.
+- Each node has exactly one parent.
+- The root node has NO parent.
+- You can attach data to a node.
+
+## An image of a tree
+
+<figure style="display: flex; flex-direction: column;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Tree_%28computer_science%29.svg/440px-Tree_%28computer_science%29.svg.png" style="height: 400px; object-fit: contain;">
+  <figcaption>An image borrowed from <a href="https://en.wikipedia.org/wiki/Tree_(data_structure)">https://en.wikipedia.org/wiki/Tree_(data_structure)</a></figcaption>
+</figure>
+
+## A tree definition in Golang
+
+```
+type Node struct {
+  Data     any
+  Children []*Node
+}
+```
+
+: Node usually contains data, otherwise the tree is not very useful.
+
+## A tree literal
+
+```
+tree := &Node{
+  Data: 2,
+  Children: []*Node{
+    {
+      Data: 7,
+      Children: []*Node{
+        {
+          Data: 2,
+        },
+      },
+    },
+    {
+      Data: 5,
+      Children: []*Node{
+        {
+          Data: 9,
+          Children: []*Node{
+            {
+              Data: 4,
+            },
+          },
+        },
+      },
+    },
+  },
+}
+```
+
+## Where can I find application of tree?
+
+## Where can I find application of tree?
+
+- Abstract Syntax Tree
+  - [https://pkg.go.dev/text/template/parse#Tree](https://pkg.go.dev/text/template/parse#Tree)
+  - [https://pkg.go.dev/go/ast#File](https://pkg.go.dev/go/ast#File)
+- DOM tree
+  - [https://developer.mozilla.org/en-US/docs/Web/API/Node](https://developer.mozilla.org/en-US/docs/Web/API/Node)
+
+## Tree traversal
+
+- Depth-first search (the focus of this talk)
+- Breadth-first search
+
+## Depth-first search
+
+- Can be implemented with simple recursion.
+
+3 variants:
+
+- Pre-order
+- Post-order
+- In-order
+
+## Depth-first search: Pre-order
+
+[![](https://mermaid.ink/img/pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw?type=png)](https://mermaid.live/edit#pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw)
+
+A -> B -> C -> D
+
+1. Visit the current node
+2. Visit the children
+
+[Demo](https://go.dev/play/p/SX38I_02AQP)
+
+## Depth-first search: Post-order
+
+[![](https://mermaid.ink/img/pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw?type=png)](https://mermaid.live/edit#pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw)
+
+B -> C -> D -> A
+
+1. Visit the children
+2. Visit the current node
+
+[Demo](https://go.dev/play/p/HtqXTmWKrOq)
+
+## Depth-first search: In-order
+
+In binary tree
+
+1. Visit the left child recursive.
+2. Visit the current node.
+3. Visit the right child recursive.
+
+In non-binary tree
+
+- Applicable only if your tree is **ordered**.
+
+## So, what is the application?
+
+## Represent an authentication flow as a tree - Code
+
+```
+type Flow struct {
+  FlowID     string
+  StateToken string
+  Intent     Intent
+  Nodes      []Node
+}
+
+type Intent interface {}
+
+type NodeType string
+
+const (
+	NodeTypeSimple  NodeType = "SIMPLE"
+	NodeTypeSubFlow NodeType = "SUB_FLOW"
+)
+
+type Node struct {
+  Type    NodeType   `json:"type"`
+  Simple  NodeSimple `json:"simple,omitempty"`
+  SubFlow *Flow      `json:"flow,omitempty"`
+}
+
+type NodeSimple interface {}
+```
+
+## Represent an authentication flow as a tree - Explanation
+
+- An authentication flow is represented by a `Flow`.
+- `Intent` determines the kind of the flow, e.g. `SignupIntent` and `LoginIntent`.
+- As the authentication flow proceeds, more `Node`s are appended.
+- The deepest node takes input.
+
+## Represent an authentication flow as a tree - Simplified example
+
+```
+&Flow{
+  Intent: &SignupIntent{},
+  Nodes: []Node{
+    Node{
+      Type: NodeTypeSimple,
+      Simple: &NodeCreateUserID{
+        UserID: "user0",
+      },
+    },
+    Node{
+      Type: NodeTypeSimple,
+      Simple: &NodeCreateLoginID{
+        LoginID: "louischan@oursky.com",
+      },
+    },
+    Node{
+      Type: NodeTypeSimple,
+      Simple: &NodeCreatePassword{
+        Password: "secret",
+      },
+    },
+  },
+}
+```
+
+## Application 1: Find out the node that takes input
+
+- By definition, the deepest node takes input.
+- So we want to find the deepest node.
+- A simplfied traversal that visit the last node only.
+
+[Link to real code](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/input.go#L74)
+
+## Application 2: Coordinate the effects of nodes
+
+- We define our traversal flavor. [Link](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/traverse.go#L12)
+- Traverse the tree and perform effects. [Link](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/effect.go#L75)
+
+TODO: Add a go playground demo here.
+
+## Q & A
