@@ -7,9 +7,8 @@ louischan@oursky.com
 ## What is a tree
 
 - A tree consists of nodes.
-- Each node has exactly one parent.
-- The root node has NO parent.
-- You can attach data to a node.
+- Each node has **exactly one** parent.
+- The root node has **NO** parent.
 
 ## An image of a tree
 
@@ -18,7 +17,7 @@ louischan@oursky.com
   <figcaption>An image borrowed from <a href="https://en.wikipedia.org/wiki/Tree_(data_structure)">https://en.wikipedia.org/wiki/Tree_(data_structure)</a></figcaption>
 </figure>
 
-## A tree definition in Golang
+## A typical tree definition on textbook
 
 ```
 type Node struct {
@@ -27,42 +26,27 @@ type Node struct {
 }
 ```
 
-: Node usually contains data, otherwise the tree is not very useful.
-
-## A tree literal
-
 ```
-tree := &Node{
-  Data: 2,
-  Children: []*Node{
-    {
-      Data: 7,
-      Children: []*Node{
-        {
-          Data: 2,
-        },
-      },
-    },
-    {
-      Data: 5,
-      Children: []*Node{
-        {
-          Data: 9,
-          Children: []*Node{
-            {
-              Data: 4,
-            },
-          },
-        },
-      },
-    },
-  },
-}
+&Node{ Data: 2, Children: []*Node{
+  { Data: 7, Children: []*Node{
+    { Data: 2 },
+    { Data: 10 },
+    { Data: 6, Children: []*Node{
+      { Data: 5 },
+      { Data: 11 },
+    }},
+  }},
+  { Data: 5, Children: []*Node{
+    { Data: 9, Children: []*Node{
+      { Data: 4 },
+    }},
+  }},
+}}
 ```
 
-## Where can I find application of tree?
+## Real world tree
 
-## Where can I find application of tree?
+Real world tree **does not** look like the one on textbook.
 
 - Abstract Syntax Tree
   - [https://pkg.go.dev/text/template/parse#Tree](https://pkg.go.dev/text/template/parse#Tree)
@@ -70,63 +54,151 @@ tree := &Node{
 - DOM tree
   - [https://developer.mozilla.org/en-US/docs/Web/API/Node](https://developer.mozilla.org/en-US/docs/Web/API/Node)
 
-## Tree traversal
+## Some applications of tree in Authgear
 
-- Depth-first search (the focus of this talk)
-- Breadth-first search
+Authentication Flow
 
-## Depth-first search
+- A recent feature of Authgear.
+- Customize authentication flows **by configuration**.
+- Execute **arbitrary** authentication flow.
 
-- Can be implemented with simple recursion.
+## Authentication flow configuration
 
-3 variants:
+```
+name: default
+steps:
+- type: identify
+  one_of:
+  - identification: email
+    steps:
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - type: authenticate
+          optional: true
+          one_of:
+          - authentication: secondary_totp
+  - identification: phone
+    steps:
+    - type: authenticate
+      one_of:
+      - authentication: primary_oob_otp_sms
+```
 
-- Pre-order
-- Post-order
-- In-order
+- `one_of` and `steps`.
+- [Link](https://github.com/authgear/authgear-server/blob/main/pkg/lib/config/authentication_flow.go#L895)
 
-## Depth-first search: Pre-order
+## Application 1: How do we keep track of the progress of the flow?
 
-[![](https://mermaid.ink/img/pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw?type=png)](https://mermaid.live/edit#pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw)
+- We want to locate the current step in the flow configuration.
+- We use [JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) to do this.
 
-A -> B -> C -> D
+## 🤔
 
-1. Visit the current node
-2. Visit the children
+Isn't your configuration written in YAML, instead of in JSON?
+- YAML is a superset of JSON. [https://github.com/kubernetes-sigs/yaml](https://github.com/kubernetes-sigs/yaml)
 
-[Demo](https://go.dev/play/p/SX38I_02AQP)
+## What is a JSON Pointer?
 
-## Depth-first search: Post-order
+- A notation to traverse a JSON document (a tree).
+- A list of **reference token** e.g. `/steps`, `/1`.
+- An empty JSON Pointer points to the root of the JSON document.
+- Each reference token traverses **one** level down.
 
-[![](https://mermaid.ink/img/pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw?type=png)](https://mermaid.live/edit#pako:eNpNj80KgzAQhF8l7CmCvkAOBWN67Kk9lVwWs1bBJJImlCK-e_2prXv6hp3dYUaovSEQ0PT-VbcYIrtJ7dg8Jedllm0sOZc7V5xXOyvO1cLfC1YUJyaPojoKBTlYChY7MyeOy0pDbMmSBjGjoQZTHzVoN83WNBiMdDZd9AFEg_2TcsAU_fXtahAxJNpNqsNHQPtzDeju3v81rU8uW9W18fQBGjVJsw)
+## Traverse a JSON Pointer - 1
 
-B -> C -> D -> A
+- Traversed:
+- Remaining: `/steps/0/one_of/1/steps/0/one_of/0`
 
-1. Visit the children
-2. Visit the current node
+```
+name: default
+steps:
+- type: identify
+  one_of:
+  - identification: email
+    steps:
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - type: authenticate
+          optional: true
+          one_of:
+          - authentication: secondary_totp
+  - identification: phone
+    steps:
+    - type: authenticate
+      one_of:
+      - authentication: primary_oob_otp_sms
+```
 
-[Demo](https://go.dev/play/p/HtqXTmWKrOq)
+## Traverse a JSON Pointer - 2
 
-## Depth-first search: In-order
+- Traversed: `/steps/0`
+- Remaining: `/one_of/1/steps/0/one_of/0`
 
-In binary tree
+```
+type: identify
+one_of:
+- identification: email
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+      steps:
+      - type: authenticate
+        optional: true
+        one_of:
+        - authentication: secondary_totp
+- identification: phone
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_oob_otp_sms
+```
 
-1. Visit the left child recursive.
-2. Visit the current node.
-3. Visit the right child recursive.
+## Traverse a JSON Pointer - 3
 
-In non-binary tree
+- Traversed: `/steps/0/one_of/1`
+- Remaining: `/steps/0/one_of/0`
 
-- Applicable only if your tree is **ordered**.
+```
+identification: phone
+steps:
+- type: authenticate
+  one_of:
+  - authentication: primary_oob_otp_sms
+```
 
-## So, what is the application?
+## Traverse a JSON Pointer - 4
 
-## Represent an authentication flow as a tree - Code
+- Traversed: `/steps/0/one_of/1/steps/0`
+- Remaining: `/one_of/0`
+
+```
+type: authenticate
+one_of:
+- authentication: primary_oob_otp_sms
+```
+
+## Traverse a JSON Pointer - 5
+
+- Traversed: `/steps/0/one_of/1/steps/0/one_of/0`
+- Remaining:
+
+```
+authentication: primary_oob_otp_sms
+```
+
+## Takeaway 1: When you need to traverse a tree-like data structure dynamically......
+
+You can consider using JSON Pointer, or something similar (e.g. [JsonPath](https://github.com/json-path/JsonPath))
+
+## Authentication flow execution
 
 ```
 type Flow struct {
-  FlowID     string
-  StateToken string
   Intent     Intent
   Nodes      []Node
 }
@@ -134,11 +206,8 @@ type Flow struct {
 type Intent interface {}
 
 type NodeType string
-
-const (
-	NodeTypeSimple  NodeType = "SIMPLE"
-	NodeTypeSubFlow NodeType = "SUB_FLOW"
-)
+const NodeTypeSimple  NodeType = "SIMPLE"
+const NodeTypeSubFlow NodeType = "SUB_FLOW"
 
 type Node struct {
   Type    NodeType   `json:"type"`
@@ -149,14 +218,44 @@ type Node struct {
 type NodeSimple interface {}
 ```
 
-## Represent an authentication flow as a tree - Explanation
+- [Flow](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/workflow.go#L3)
+- [Node](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/node.go#L10)
 
-- An authentication flow is represented by a `Flow`.
-- `Intent` determines the kind of the flow, e.g. `SignupIntent` and `LoginIntent`.
-- As the authentication flow proceeds, more `Node`s are appended.
-- The deepest node takes input.
+## Authentication flow execution, with JSON Pointer
 
-## Represent an authentication flow as a tree - Simplified example
+```
+&Flow{
+  Intent: &LoginIntent{},
+  Nodes: []Node{
+    Node{
+      Type: NodeTypeSubFlow,
+      SubFlow: &Flow{
+        Intent: IdentifyIntent{
+          JSONPointer: "/steps/0",
+        },
+        Nodes: []Node{
+          Node{
+            Type: NodeTypeSimple,
+            Simple: &NodeUseIdentityLoginID{
+              JSONPointer: "/steps/0/one_of/1",
+              LoginID: "+85298765432",
+            },
+          },
+        },
+      },
+    },
+  },
+}
+```
+
+## Takeaway 2: Do not overload the purpose of data structure
+
+- The configuration tree by itself is simple.
+- Instead of overloading this tree to represent the execution, we invent a new one, and use JSON Pointer to associate them.
+
+## Application 2: Order the effects of nodes - 1
+
+Given this tree
 
 ```
 &Flow{
@@ -164,39 +263,54 @@ type NodeSimple interface {}
   Nodes: []Node{
     Node{
       Type: NodeTypeSimple,
-      Simple: &NodeCreateUserID{
+      Simple: &NodeCreateUser{
         UserID: "user0",
       },
     },
     Node{
       Type: NodeTypeSimple,
-      Simple: &NodeCreateLoginID{
+      Simple: &NodeCreateIdentityLoginID{
+        UserID: "user0",
         LoginID: "louischan@oursky.com",
       },
     },
     Node{
       Type: NodeTypeSimple,
       Simple: &NodeCreatePassword{
-        Password: "secret",
+        UserID: "user0",
+        Hash: "password-hash",
       },
     },
   },
 }
 ```
 
-## Application 1: Find out the node that takes input
+## Application 2: Order the effects of nodes - 2
 
-- By definition, the deepest node takes input.
-- So we want to find the deepest node.
-- A simplfied traversal that visit the last node only.
+We want to have these effects in this order.
 
-[Link to real code](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/input.go#L74)
+1. Run SQL statement `INSERT INTO user (id) VALUES ('user0');`
+2. Run SQL statement `INSERT INTO login_id (user_id, login_id) VALUES ('user0', 'louischan@oursky.com');`
+3. Run SQL statement `INSERT INTO password (user_id, hash) VALUES ('user0', 'password-hash');`
+4. Call webhook `POST https://myapp.com/authgear/events/user.created`.
 
-## Application 2: Coordinate the effects of nodes
+- 2 and 3 must happen after 1 because of foreign key constraint.
+- 4 must happen after 1,2,3 because we need the changes committed in the database before we send the webhook.
 
-- We define our traversal flavor. [Link](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/traverse.go#L12)
-- Traverse the tree and perform effects. [Link](https://github.com/authgear/authgear-server/blob/main/pkg/lib/authenticationflow/effect.go#L75)
+## Application 2: Order the effects of nodes - 3
 
-TODO: Add a go playground demo here.
+We define a specific tree traversal for this purpose.
+- If it is a Flow, visit all children nodes, and then visit the intent.
+- If it is a NodeSimple, visit it.
+- If it is a SubFlow, recursively visit the flow.
+
+[See it in action](https://go.dev/play/p/6yJwYSFPk92)
+
+## Takeaway 3: Start with a standard data structure and evolve it to your needs
+
+- Started off with a tree.
+- Built the tree incrementally as the flow progresses.
+- Realized some nodes have effect to perform.
+- Discoverd this particular traversal order matches the original order of the nodes.
 
 ## Q & A
