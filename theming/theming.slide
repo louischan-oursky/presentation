@@ -1,0 +1,212 @@
+# Theming
+
+Louis Chan
+louischan@oursky.com
+
+## What is theming in Oursky?
+
+5 levels.
+
+1. **No theming** at all.
+2. Support both **light** theme and **dark** theme. (_The baseline in Oursky_)
+3. Switch to **another color palette** at **build time**.
+4. Switch to **another color palette** at **runtime**.
+5. **Fine grained customization** on components.
+
+## Support both light theme and dark theme
+
+## Support both light theme and dark theme
+
+- **SHOULD** be done in project setup in **EVERY** project.
+- Palace is a good example.
+  - Project setup by Tung.
+  - The project does not actually have dark theme.
+  - No extra time was incurred from Roy's point of view.
+
+## Support both light theme and dark theme
+
+4 steps.
+
+1. Define your light theme
+2. Define your dark theme
+3. Make the themes available throughout the app.
+4. Use the resolved theme throughout the app.
+
+## Support both light theme and dark theme - Define your light theme
+
+```
+const lightTheme: ThemeConfig = {
+  background: {
+    primary: '#EAD3AB',
+    primaryAlpha30: '#EAD3AB4D',
+    secondary: '#BCAC84',
+    default: '#242A34',
+    toast: '#3A3A3A',
+  }
+};
+```
+
+[https://github.com/oursky/palace/blob/main/mobile/src/theme/theme.ts#L25](https://github.com/oursky/palace/blob/main/mobile/src/theme/theme.ts#L25)
+
+## Support both light theme and dark theme - Define your dark theme
+
+```
+const darkTheme: ThemeConfig = {
+  background: {
+    primary: '#77866E',
+    primaryAlpha30: '#77866E4D',
+    secondary: '#5D714E',
+    default: '#242A34',
+    toast: '#3A3A3A',
+  }
+};
+```
+
+[https://github.com/oursky/palace/blob/main/mobile/src/theme/theme.ts#L46](https://github.com/oursky/palace/blob/main/mobile/src/theme/theme.ts#L46)
+
+## Support both light theme and dark theme - Make your themes available through out the app
+
+```
+export function useThemeConfig(): ThemeConfig {
+  const themeContextValue = useContext(ThemeContext);
+  return themeConfigs[themeContextValue.theme];
+}
+```
+
+[https://github.com/oursky/palace/blob/main/mobile/src/Provider/ThemeProvider.tsx#L55](https://github.com/oursky/palace/blob/main/mobile/src/Provider/ThemeProvider.tsx#L55)
+
+## Support both light theme and dark theme - Use the resolved theme through out the app.
+
+```
+const AppText: React.FC<Props> = props => {
+  const themeConfig = useThemeConfig();
+  const {
+    textColor,
+    typography = Typography.bodyRegular,
+  } = props;
+  return (
+    <InvariantSizeText
+      style={[
+        {color: textColor?.(themeConfig) ?? themeConfig.text.primary},
+      ]}
+    />
+  );
+};
+```
+
+[https://github.com/oursky/palace/blob/65fd89104f4a6c7ee21f93773eda527a024c9549/mobile/src/components/texts/AppText.tsx#L94](https://github.com/oursky/palace/blob/65fd89104f4a6c7ee21f93773eda527a024c9549/mobile/src/components/texts/AppText.tsx#L94)
+
+## Switch to another color palette at build time
+
+## Switch to another color palette at build time
+
+- The setup is platform specific.
+- In Cornerstone (a React Native project), a custom resolver for Metro is used.
+- [https://github.com/oursky/cornerstone-app/blob/master/app/metro.config.js#L13](https://github.com/oursky/cornerstone-app/blob/master/app/metro.config.js#L13)
+
+```
+ // Write a custom resolver for your bundler to resolve it to a different file.
+ import { makeTheme } from "./flavor/theme";
+```
+
+## Switch to another color palette at runtime
+
+## Switch to another color palette at runtime
+
+The current generation of the UI of Authgear.
+
+<img src="./existing-authgear-ui-customization.png" width="100%" height="80%" style="object-fit: contain;">
+
+## Switch to another color palette at runtime - How
+
+```
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme-default.css">
+  <link rel="stylesheet" href="theme-override.css">
+```
+
+In `style.css`,
+
+```
+  .btn {
+    background-color: var(--color-primary);
+  }
+```
+
+In `theme-default.css`,
+
+```
+  :root {
+    --color-primary: #ff0000;
+  }
+```
+
+In `theme-override.css`,
+
+```
+  :root {
+    --color-primary: #00ff00;
+  }
+```
+
+## Switch to another color palette at runtime - Key points
+
+- In CSS, latter overrides former.
+- Always load a default theme. (`theme-default.css`)
+- Optionally load another CSS file to override. (`theme-override.css`)
+
+## Fine grained customization on components
+
+## Fine grained customization on components
+
+The next generation of the UI of Authgear.
+
+<img src="./next-authgear-ui-customization.png" width="100%" height="90%" style="object-fit: contain;">
+
+## Fine grained customization on components - How
+
+In `base.css`,
+```
+  :root {
+    --typography-label-large__font-size: 1rem;
+  }
+```
+
+In `primary-button.css`,
+```
+  :root {
+    --primary-btn__font-size: var(--typography-label-large__font-size);
+  }
+  .primary-btn {
+    font-size: var(--primary-btn__font-size);
+  }
+```
+
+- To change the font size of primary button, override `--primary-btn__font-size`.
+- To change the font size of `label-large`, override `--typography-label-large__font-size`.
+
+## Fine grained customization on components - Key points
+
+- Define a shared variable (`--typography-label-large__font-size`).
+- Introduce a component-specific variable for every customizable property (`--primary-btn__font-size`)
+- Reference only the component-specific variable, never the shared variable directly.
+
+## A typical workflow in supporting theming
+
+> Theming is __an cooperation__ between __the designer__ and __the developer__
+
+- **The client** / **the product owner** determines the theming requirement.
+- **The designer** and **the product owner** come up with a design.
+- **The developer** reviews the design and discuss with **the designer**.
+- **The developer** implements the design, AND resolve the encountered issues with **the designer**
+
+Example
+- [https://www.figma.com/file/LRE8EfCaTfYxC0lk5AeMmE?node-id=222:10366&mode=design#684766539](https://www.figma.com/file/LRE8EfCaTfYxC0lk5AeMmE?node-id=222:10366&mode=design#684766539)
+- We have Arvin joining the standup meeting everyday during the revamp.
+
+## Key takeaways
+
+- The **baseline** is support both **light** theme and **dark** theme.
+- Close cooperation between the designer and the developer. **Craftmanship vs Factory**
+
+## Q & A
