@@ -1,0 +1,132 @@
+# Observability (Metrics) at Oursky
+
+Louis Chan
+23 Dec 2024
+louischan@oursky.com
+
+## Motivation
+
+- Statistics on error.
+- Alert on error.
+- Detect anomaly.
+- And many more.
+
+## Motivation - Statistics on error
+
+## Motivation - Statistics on error
+
+- https://oursky.slack.com/archives/C3WPVD8P9/p1718339711184659
+- Outback was launched in June 2024
+- Some customers cannot sign in.
+- Mostly due to disabled cookies in Safari.
+
+<img src="./images/outback-customer-mobile-capture.png" width="100%" height="50%" style="object-fit: contain;">
+
+## Motivation - Statistics on error
+
+- How often does this occur?
+- Before we have observability setup, we cannot tell.
+
+## Motivation - Statistics on error
+
+And now we can say it is <3%.
+
+<img src="./images/csrf-screencap.png" width="100%" height="50%" style="object-fit: contain;">
+
+## Motivation - Alert on error
+
+## Motivation - Alert on error
+
+- **Sentry** setup is **a must** in every projects.
+- New events are typically forwarded to a Slack channel.
+- It **CAN** notify new errors.
+- It **CANNOT** notify you for cases like
+  - Notify me when there are >2 of SMS failed delivery in past 30 minutes.
+
+## Motivation - Alert on error
+
+Now we have this alert
+
+<img src="./images/sms-error.png" width="100%" height="50%" style="object-fit: contain;">
+
+## Motivation - Detect anomaly
+
+## Motivation - Detect anomaly
+
+- https://oursky.slack.com/archives/CUUDP0XJQ/p1733255908856079
+- Suspected SMS pumping
+
+<img src="./images/sms-anomaly.png" width="100%" height="50%" style="object-fit: contain;">
+
+## Implementation Details - Infra setup by me
+
+## Implementation Details - Infra setup by me
+
+- **k8s.pandawork.com** and **k8s.oursky.app** has a self-hosted **Prometheus** deployment.
+- Recently updated to support **OpenTelemetry Protocol** (OTLP).
+- [https://github.com/oursky/k8s.pandawork.com/compare/d8e55caec7..597b8dd21](https://github.com/oursky/k8s.pandawork.com/compare/d8e55caec7..597b8dd21)
+
+## Implementation Details - Infra setup by me
+
+- [monitoring.pandawork.com](https://monitoring.pandawork.com) is a **Grafana** dashboard.
+- It can retrieve **metrics** from the **Prometheus** on **k8s.pandawork.com** and **k8s.oursky.app**
+- You can sign up with your `@oursky.com` email via Google Login.
+
+<img src="./images/grafana-login-page.png" width="100%" height="60%" style="object-fit: contain;">
+
+## Implementation Details - How to integrate
+
+## Implementation Details - How to integrate
+
+Install OpenTelemetry SDK for your language.
+
+- [https://opentelemetry.io/docs/languages/](https://opentelemetry.io/docs/languages/)
+
+<img src="./images/otel-sdks.png" width="100%" height="60%" style="object-fit: contain;">
+
+## Implementation Details - How to integrate
+
+Insert your own application specific metrics code
+
+<img src="./images/metrics-code-example.png" width="100%" height="80%" style="object-fit: contain;">
+
+## Implementation Details - How to integrate
+
+Configure the otel SDK in your deployment.
+
+<img src="./images/otel-deployment.png" width="100%" height="80%" style="object-fit: contain;">
+
+## Implementation Details - How to integrate
+
+Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitoring.pandawork.com)
+
+> _It requires you to learn a query language called [PromQL](https://prometheus.io/docs/prometheus/2.55/querying/basics/)!_
+
+<img src="./images/promql-example.png" width="100%" height="60%" style="object-fit: contain;">
+
+## How is this relevant to me?
+
+## How is this relevant to me?
+
+As a developer
+
+- Need to implement observability in your project.
+
+## How is this relevant to me?
+
+As a project manager
+
+- Need to reserve resource to implement observability.
+
+## How is this relevant to me?
+
+As a sales representative
+
+- Can claim to our client that our project has observability included.
+
+## Discussion topics
+
+- Should we make observability mandatory? By what time?
+- What essential metrics every project should track?
+- How can we speed up the integration and setup in new projects?
+- How should we use Sentry given that we now have observability setup in a project?
