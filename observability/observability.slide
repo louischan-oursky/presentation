@@ -104,6 +104,20 @@ Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitor
 
 <img src="./images/promql-example.png" width="100%" height="60%" style="object-fit: contain;">
 
+## What about Sentry?
+
+## What about Sentry?
+
+> This is a stance from Rick, excerpted from https://3.basecamp.com/3096882/buckets/39643879/todos/8105628974#__recording_8131932056
+
+- For tracking **highly actionable error**.
+- **DO NOT** use advanced features like [Performance Monitoring](https://docs.sentry.io/product/performance/) (It is expensive!)
+
+The implication
+
+- Developers **MUST** ensure the errors being sent to Sentry are **actionable errors**.
+  - Example: [https://github.com/authgear/authgear-server/pull/4944](https://github.com/authgear/authgear-server/pull/4944)
+
 ## How is this relevant to me?
 
 ## How is this relevant to me?
@@ -111,6 +125,7 @@ Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitor
 **Developer**
 
 - Need to implement observability in your project.
+- Ensure only actionable errors are sent to Sentry.
 
 ## How is this relevant to me?
 
@@ -135,4 +150,3 @@ Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitor
 - Should we make observability mandatory? By what time?
 - What essential metrics every project should track?
 - How can we speed up the integration and setup in new projects?
-- How should we use Sentry given that we now have observability setup in a project?
