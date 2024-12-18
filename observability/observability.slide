@@ -6,14 +6,14 @@ louischan@oursky.com
 
 ## Motivation
 
-- Statistics on error.
-- Alert on error.
+- Statistics on errors.
+- Alert on errors.
 - Detect anomaly.
 - And many more.
 
-## Motivation - Statistics on error
+## Motivation - Statistics on errors
 
-## Motivation - Statistics on error
+## Motivation - Statistics on errors
 
 - https://oursky.slack.com/archives/C3WPVD8P9/p1718339711184659
 - Outback was launched in June 2024
@@ -22,28 +22,28 @@ louischan@oursky.com
 
 <img src="./images/outback-customer-mobile-capture.png" width="100%" height="50%" style="object-fit: contain;">
 
-## Motivation - Statistics on error
+## Motivation - Statistics on errors
 
 - How often does this occur?
 - Before we have observability setup, we cannot tell.
 
-## Motivation - Statistics on error
+## Motivation - Statistics on errors
 
 And now we can say it is <3%.
 
 <img src="./images/csrf-screencap.png" width="100%" height="50%" style="object-fit: contain;">
 
-## Motivation - Alert on error
+## Motivation - Alert on errors
 
-## Motivation - Alert on error
+## Motivation - Alert on errors
 
-- **Sentry** setup is **a must** in every projects.
+- **Sentry** setup has been **a must** in every projects.
 - New events are typically forwarded to a Slack channel.
 - It **CAN** notify new errors.
 - It **CANNOT** notify you for cases like
   - Notify me when there are >2 of SMS failed delivery in past 30 minutes.
 
-## Motivation - Alert on error
+## Motivation - Alert on errors
 
 Now we have this alert
 
@@ -108,15 +108,33 @@ Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitor
 
 ## What about Sentry?
 
-> This is a stance from Rick, excerpted from https://3.basecamp.com/3096882/buckets/39643879/todos/8105628974#__recording_8131932056
+- Reduce false positives.
+- Track **highly actionable errors**.
+- Remember to turn off unused paid features.
 
-- For tracking **highly actionable error**.
-- **DO NOT** use advanced features like [Performance Monitoring](https://docs.sentry.io/product/performance/) (It is expensive!)
+## Sentry - Reduce false positives
 
-The implication
+<img src="./images/sentry-false-positive-example.png" width="100%" height="60%" style="object-fit: contain;">
 
-- Developers **MUST** ensure the errors being sent to Sentry are **actionable errors**.
-  - Example: [https://github.com/authgear/authgear-server/pull/4944](https://github.com/authgear/authgear-server/pull/4944)
+This is a network error. What can you do with it?
+
+[https://github.com/authgear/authgear-server/pull/4944](https://github.com/authgear/authgear-server/pull/4944)
+
+## Sentry - Track highly actionable errors
+
+<img src="./images/sentry-actionable-error-example.png" width="100%" height="60%" style="object-fit: contain;">
+
+Possibly a bug, or inappropriate nil handling that can be fixed.
+
+## Sentry - Turn off unused paid features
+
+<img src="./images/sentry-unused-paid-features-1.png" width="100%" height="80%" style="object-fit: contain;">
+
+The official Get Started guide include this evil line.
+
+## Sentry - Turn off unused paid features
+
+<img src="./images/sentry-unused-paid-features-2.png" width="100%" height="80%" style="object-fit: contain;">
 
 ## How is this relevant to me?
 
@@ -124,14 +142,14 @@ The implication
 
 **Developer**
 
-- Need to implement observability in your project.
-- Ensure only actionable errors are sent to Sentry.
+- Implement observability in your project.
+- Use Sentry in the recommended way.
 
 ## How is this relevant to me?
 
 **Project Manager**
 
-- Need to reserve resource to implement observability.
+- Reserve resource to implement observability.
 
 ## How is this relevant to me?
 
@@ -148,5 +166,6 @@ The implication
 ## Discussion topics
 
 - Should we make observability mandatory? By what time?
-- What essential metrics every project should track?
+- How do we roll out this requirement company-wise? Only in new projects?
+- What essential metrics every project should track? (e.g. HTTP request latency)
 - How can we speed up the integration and setup in new projects?
