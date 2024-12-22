@@ -4,23 +4,59 @@ Louis Chan
 23 Dec 2024
 louischan@oursky.com
 
+## What is observability?
+
+## What is observability?
+
+- Learn what your program is doing.
+- Give insights on helping you to answer questions.
+
+: Let me the explain the topic
+: It is vague. Let me give some examples later.
+
+## What composes observability?
+
+## What composes observability?
+
+- **Metrics** (The topic of this presentation)
+- Traces
+- Logs
+
+: Traces is something more complicated.
+: Let's focus on metrics first, it is simpler.
+
+## What is Metrics?
+
+- **Numeric** information about your **running** program.
+  - Count of sent SMS / emails.
+  - Number of HTTP requests per second.
+  - etc
+- **Visualizable** (i.e. You can draw a graph with the information)
+
+## Why do we need observability?
+
 ## Motivation
+
+Lessons learned from Authgear:
 
 - Statistics on errors.
 - Alert on errors.
 - Detect anomaly.
-- And many more.
 
 ## Motivation - Statistics on errors
 
 ## Motivation - Statistics on errors
 
 - https://oursky.slack.com/archives/C3WPVD8P9/p1718339711184659
-- Outback was launched in June 2024
+- Outback was launched in mid 2024
 - Some customers cannot sign in.
 - Mostly due to disabled cookies in Safari.
 
 <img src="./images/outback-customer-mobile-capture.png" width="100%" height="50%" style="object-fit: contain;">
+
+: Authgear requires cookie to protect you from CSRF attack.
+
+<footer><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#signed-double-submit-cookie-recommended">Signed Double-Submit Cookie</a></footer>
 
 ## Motivation - Statistics on errors
 
@@ -39,9 +75,10 @@ And now we can say it is <3%.
 
 - **Sentry** setup has been **a must** in every projects.
 - New events are typically forwarded to a Slack channel.
-- It **CAN** notify new errors.
+- It **CAN** notify **new errors**.
 - It **CANNOT** notify you for cases like
-  - Notify me when there are >2 of SMS failed delivery in past 30 minutes.
+
+> Notify me when there are >2 of SMS failed delivery in past 30 minutes.
 
 ## Motivation - Alert on errors
 
@@ -58,25 +95,34 @@ Now we have this alert
 
 <img src="./images/sms-anomaly.png" width="100%" height="50%" style="object-fit: contain;">
 
-## Implementation Details - Infra setup by me
+: Authgear has mechanism such as rate limiting to minimize the impact of such attack.
+: Before we have this alert, we rely on the SMS provider (Twilio) to offer detection.
+: Useful because not every provider offer detection.
 
-## Implementation Details - Infra setup by me
+## What I have done?
+
+## What I have done?
 
 - **k8s.pandawork.com** and **k8s.oursky.app** has a self-hosted **Prometheus** deployment.
+
+> _**Prometheus** is a **time series database** for storing metrics._
+
 - Recently updated to support **OpenTelemetry Protocol** (OTLP).
 - [https://github.com/oursky/k8s.pandawork.com/compare/d8e55caec7..597b8dd21](https://github.com/oursky/k8s.pandawork.com/compare/d8e55caec7..597b8dd21)
 
-## Implementation Details - Infra setup by me
+## What I have done?
 
 - [monitoring.pandawork.com](https://monitoring.pandawork.com) is a **Grafana** dashboard.
-- It can retrieve **metrics** from the **Prometheus** on **k8s.pandawork.com** and **k8s.oursky.app**
+- It **visualizes** metrics and **generates** alerts.
 - You can sign up with your `@oursky.com` email via Google Login.
+
+> Must connect with Tailscale!
 
 <img src="./images/grafana-login-page.png" width="100%" height="60%" style="object-fit: contain;">
 
-## Implementation Details - How to integrate
+## Extra work in project setup
 
-## Implementation Details - How to integrate
+## Extra work in project setup - Step 1
 
 Install OpenTelemetry SDK for your language.
 
@@ -84,25 +130,32 @@ Install OpenTelemetry SDK for your language.
 
 <img src="./images/otel-sdks.png" width="100%" height="60%" style="object-fit: contain;">
 
-## Implementation Details - How to integrate
+## Extra work in project setup - Step 2
 
-Insert your own application specific metrics code
+**Instrument** your **application specific** metrics
 
-<img src="./images/metrics-code-example.png" width="100%" height="80%" style="object-fit: contain;">
+<img src="./images/metrics-code-example.png" width="100%" height="80%" style="object-fit: contain; margin: 16px 0">
 
-## Implementation Details - How to integrate
+## Extra work in project setup - Step 3
 
-Configure the otel SDK in your deployment.
+Configure the OpenTelemetry SDK in your deployment.
 
 <img src="./images/otel-deployment.png" width="100%" height="80%" style="object-fit: contain;">
 
-## Implementation Details - How to integrate
+## Extra work in project setup - Step 4
 
-Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitoring.pandawork.com)
+Create dashboards and set up alerts on [monitoring.pandawork.com](https://monitoring.pandawork.com)
 
-> _It requires you to learn a query language called [PromQL](https://prometheus.io/docs/prometheus/2.55/querying/basics/)!_
+> _You have to learn a query language called [PromQL](https://prometheus.io/docs/prometheus/2.55/querying/basics/)!_
 
 <img src="./images/promql-example.png" width="100%" height="60%" style="object-fit: contain;">
+
+## That's it!
+
+## How do we add a new metric?
+
+- Step 1 and Step 3 are usually one-off.
+- Repeat Step 2 and Step 4.
 
 ## What about Sentry?
 
@@ -111,6 +164,8 @@ Create dashboard and set up alerts on [monitoring.pandawork.com](https://monitor
 - Reduce false positives.
 - Track **highly actionable errors**.
 - Remember to turn off unused paid features.
+
+: We will have some changes on our existing usage of Sentry.
 
 ## Sentry - Reduce false positives
 
@@ -142,30 +197,38 @@ The official Get Started guide include this evil line.
 
 **Developer**
 
-- Implement observability in your project.
+- Support observability in your project.
 - Use Sentry in the recommended way.
 
 ## How is this relevant to me?
 
 **Project Manager**
 
-- Reserve resource to implement observability.
+- Reserve resource for setting up observability.
+
+## How is this relevant to me?
+
+**Product Owner**
+
+- Come up with **meaningful metrics** to track.
 
 ## How is this relevant to me?
 
 **Sales Representative**
 
-- Can claim to our client that our project has observability included.
+- Observability could be a selling point!
 
 ## How is this relevant to me?
 
 **Account Manager**
 
-- Can tell if a particular error rate is acceptable compared to industry baseline.
+- Answer questions from the client based on facts (metrics).
+
+> e.g. if a particular error rate is acceptable compared to industry baseline.
 
 ## Discussion topics
 
 - Should we make observability mandatory? By what time?
 - How do we roll out this requirement company-wise? Only in new projects?
 - What essential metrics every project should track? (e.g. HTTP request latency)
-- How can we speed up the integration and setup in new projects?
+- How can we speed up the setup in projects?
