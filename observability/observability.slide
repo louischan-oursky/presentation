@@ -27,9 +27,9 @@ louischan@oursky.com
 
 ## What is Metrics?
 
-- **Numeric** information about your **running** program.
-  - Count of sent SMS / emails.
-  - Number of HTTP requests per second.
+- **Numeric** information associated with **time** about your **running** program.
+  - **Count** (numeric) of sent SMS / emails in **past 30 minutes** (time).
+  - **Count** (numeric) of HTTP requests **per second** (time).
   - etc
 - **Visualizable** (i.e. You can draw a graph with the information)
 
@@ -99,9 +99,14 @@ Now we have this alert
 : Before we have this alert, we rely on the SMS provider (Twilio) to offer detection.
 : Useful because not every provider offer detection.
 
-## What I have done?
+## Infra overview
 
-## What I have done?
+## Infra overview
+
+- It is done by me already.
+- Other projects can just use it.
+
+## Infra overview
 
 - **k8s.pandawork.com** and **k8s.oursky.app** has a self-hosted **Prometheus** deployment.
 
@@ -110,10 +115,10 @@ Now we have this alert
 - Recently updated to support **OpenTelemetry Protocol** (OTLP).
 - [https://github.com/oursky/k8s.pandawork.com/compare/d8e55caec7..597b8dd21](https://github.com/oursky/k8s.pandawork.com/compare/d8e55caec7..597b8dd21)
 
-## What I have done?
+## Infra overview
 
 - [monitoring.pandawork.com](https://monitoring.pandawork.com) is a **Grafana** dashboard.
-- It **visualizes** metrics and **generates** alerts.
+- It **visualizes** metrics and **manages** alerts.
 - You can sign up with your `@oursky.com` email via Google Login.
 
 > Must connect with Tailscale!
@@ -225,6 +230,8 @@ The official Get Started guide include this evil line.
 - Answer questions from the client based on facts (metrics).
 
 > e.g. if a particular error rate is acceptable compared to industry baseline.
+
+## Q & A
 
 ## Discussion topics
 
